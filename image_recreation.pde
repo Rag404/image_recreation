@@ -1,7 +1,7 @@
 // Natural selection
-final int shape_count = 500;
-final int gen_count = 10;
-final int survivor_count = 100;
+final int shape_count = 100;
+final int gen_count = 5;
+final int survivor_count = 20;
 final int child_count = shape_count/survivor_count;
 
 // Genetic
@@ -79,7 +79,6 @@ void selection() {
   Shape[] shapes = new Shape[shape_count];
   
   for(int gen=0; gen < gen_count; gen++){
-    println(gen);
     Shape[] bestShapes = {};
     
     for(int s=0; s < shape_count; s++) {
@@ -94,7 +93,7 @@ void selection() {
             bestShapes = (Shape[]) append(bestShapes, shape);
             break;
           }
-          else if(score < bestShapes[j].score) {
+          else if(score > bestShapes[j].score) {
             bestShapes = (Shape[]) splice(bestShapes, shape, j);
             break;
           }

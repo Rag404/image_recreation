@@ -53,7 +53,9 @@ class Shape {
       new_pg.endDraw();
       
       float last_area_score = calculateScore(last_shape_area, img_area);
-      new_score = abs(last_area_score - calculateScore(shape_area, img_area));
+      float _score = calculateScore(shape_area, img_area);
+      new_score = abs(last_area_score - _score);
+      //println(last_area_score, _score, new_score);
     }
     else {
       new_pg.beginDraw();
@@ -61,7 +63,8 @@ class Shape {
       new_pg.image(pg(), 0, 0);
       new_pg.endDraw();
       
-      new_score = abs(last_score - calculateScore(new_pg, img));
+      float last_area_score = calculateScore(new_pg, img);
+      new_score = abs(last_area_score - calculateScore(new_pg, img));
     }
     
     this.score = new_score;
