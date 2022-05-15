@@ -23,8 +23,7 @@ final float bar_size = -200;
 PImage img;
 PGraphics new_img;
 PGraphics[] buffer = {};
-Shape current_parent;
-Shape[] children;
+float last_score = 0;
 
 // Thread stuff
 float[] percentages = new float[thread_count];
@@ -39,6 +38,7 @@ void settings() {
 
 void setup() {
   img = loadImage("wallpaper3_resized.jpg");
+  img.loadPixels();
   image(img, width/2, 0);
   
   new_img = createGraphics(img.width, img.height);
@@ -102,29 +102,25 @@ void selection() {
       }
     }
     
-    println("shapes");
-    
     if(gen == gen_count-1) {
       shapes = bestShapes;
       percentages[_thread_index] = 0;
       break;
     }
-    int c_count = 0;
+    
     Shape[] survivors = (Shape[]) subset(bestShapes, 0, survivor_count);
-    children = new Shape[0];
+    Shape[] children = new Shape[0];
     for(Shape shape: survivors) {
-      current_parent = shape;
-      thread("createChild");
-      delay(10);
-      c_count++;
+      for(int child=0; child < child_count; child++) {
+        children = (Shape[]) append(children, createChild(shape));
+      }
     }
-    println(c_count);
-    while(children.length != child_count*survivor_count) { println(children.length); delay(100); }
     shapes = (Shape[]) concat(survivors, children);
     
     percentages[_thread_index] += 100/gen_count;
   }
   
+  last_score = shapes[0].score;
   
   new_img.beginDraw();
   new_img.image(shapes[0].pg(), 0, 0);
@@ -132,22 +128,18 @@ void selection() {
   
   buffer = (PGraphics[]) append(buffer, new_img);
   count++;
-  //image(new_img, 0, 0);
   println(count, "-", shapes[0].score);
 }
 
 
-void createChild() {
-  Shape shape = current_parent;
-  for(int child=0; child < child_count; child++) {
-    float x = randomVar(shape.x, position_variation, 0, img.width);
-    float y = randomVar(shape.y, position_variation, 0, img.height);
-    float sizeX = randomVar(shape.sizeX, size_variation, min_size, max_size);
-    float sizeY = randomVar(shape.sizeY, size_variation, min_size, max_size);
-    float rotation = randomVar(shape.rotation, rotation_variation, -180, 180);
-    float alpha = randomVar(alpha(shape.c), alpha_variation, 0, 255);
-    children = (Shape[]) append(children, new Shape(x, y, sizeX, sizeY, rotation, alpha));
-  }
+Shape createChild(Shape shape) {
+  float x = randomVar(shape.x, position_variation, 0, img.width);
+  float y = randomVar(shape.y, position_variation, 0, img.height);
+  float sizeX = randomVar(shape.sizeX, size_variation, min_size, max_size);
+  float sizeY = randomVar(shape.sizeY, size_variation, min_size, max_size);
+  float rotation = randomVar(shape.rotation, rotation_variation, -180, 180);
+  float alpha = randomVar(alpha(shape.c), alpha_variation, 0, 255);
+  return new Shape(x, y, sizeX, sizeY, rotation, alpha);
 }
 
 

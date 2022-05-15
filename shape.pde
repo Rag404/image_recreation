@@ -32,24 +32,36 @@ class Shape {
   
   
   float loadScore() {
-    float new_score = 0;
-    PGraphics pg = pg();
     PGraphics new_pg = createGraphics(img.width, img.height);
     
-    new_pg.beginDraw();
-    new_pg.image(new_img, 0, 0);
-    new_pg.image(pg, 0, 0);
-    new_pg.endDraw();
+    float radius = sqrt(pow(sizeX, 2) + pow(sizeY, 2));
+    int areaX = int(constrain(x-radius, 0, img.width));
+    int areaY = int(constrain(y-radius, 0, img.height));
+    int size = int(radius * 2);
     
-    new_pg.loadPixels();
-    img.loadPixels();
+    float new_score;
     
-    for(int i=0; i < img.pixels.length; i++){
-       color c_pg = new_pg.pixels[i];
-       color c_img = img.pixels[i];
-       float a1 = alpha(c_pg)/255;  float r1 = red(c_pg)*a1;  float g1 = green(c_pg)*a1;  float b1 = blue(c_pg)*a1;
-       float a2 = alpha(c_img)/255; float r2 = red(c_img)*a2;  float g2 = green(c_img)*a2;  float b2 = blue(c_img)*a2;
-       new_score += colorDistance(r1, g1, b1, r2, g2, b2);
+    if(size*size < img.width*img.height) {
+      PImage img_area = img.get(areaX, areaY, size, size);
+      PImage last_shape_area = new_img.get(areaX, areaY, size, size);
+      PImage shape_area;
+      
+      new_pg.beginDraw();
+      new_pg.image(new_img, 0, 0);
+      new_pg.image(pg(), 0, 0);
+      shape_area = new_pg.get(areaX, areaY, size, size);
+      new_pg.endDraw();
+      
+      float last_area_score = calculateScore(last_shape_area, img_area);
+      new_score = abs(last_area_score - calculateScore(shape_area, img_area));
+    }
+    else {
+      new_pg.beginDraw();
+      new_pg.image(new_img, 0, 0);
+      new_pg.image(pg(), 0, 0);
+      new_pg.endDraw();
+      
+      new_score = abs(last_score - calculateScore(new_pg, img));
     }
     
     this.score = new_score;
@@ -62,10 +74,9 @@ class Shape {
     int areaY = constrain(y-sizeY, 0, img.height);
     int areaW = constrain(areaX+sizeX*2, 0, img.width) - areaX;
     int areaH = constrain(areaY+sizeY*2, 0, img.height) - areaY;
-    
     PImage area;
     
-    if(!do_rotate || rotation == 0 || abs(rotation) == 180) {
+    if(!do_rotate || rotation % 180 == 0) {
       area = img.get(areaX, areaY, areaW, areaH);
     }
     else if(abs(rotation) == 90) {
@@ -76,13 +87,18 @@ class Shape {
       area = img.get(areaX, areaY, areaH, areaW);
     }
     else {
+      float radius = sqrt(pow(sizeX, 2) + pow(sizeY, 2));
+      int cut_areaX = int(constrain(x-radius, 0, img.width));
+      int cut_areaY = int(constrain(y-radius, 0, img.height));
+      int cut_size = int(radius * 2);
+      PImage cut_area = img.get(cut_areaX, cut_areaY, cut_size, cut_size);
+      
       PGraphics temp = createGraphics(img.width, img.height);
       temp.beginDraw();
       temp.translate(x, y);
-      temp.rotate(radians(rotation));
-      temp.image(img, -x, -y);
+      temp.rotate(radians(-rotation));
+      temp.image(cut_area, -x, -y);
       temp.endDraw();
-      temp.loadPixels();
       area = temp.get(areaX, areaY, areaW, areaH);
     }
     
@@ -114,15 +130,33 @@ Shape randomShape() {
   return new Shape(x, y, sizeX, sizeY, rotation, alpha);
 }
 
-/*
-float med(float[] list) {
-  list = sort(list);
-  float median;
-  if(list.length%2 == 0) median = (list[list.length/2] + list[list.length/2-1]) / 2;
-  else median = list[list.length/2];
-  return median;
+
+float calculateScore(PImage area, PImage original) {
+  float score = 0;
+  area.loadPixels();
+  for(int i=0; i < area.pixels.length; i++){
+     color c_area = area.pixels[i];
+     color c_img = original.pixels[i];
+     float a1 = alpha(c_area)/255;  float r1 = red(c_area)*a1;  float g1 = green(c_area)*a1;  float b1 = blue(c_area)*a1;
+     float a2 = alpha(c_img)/255; float r2 = red(c_img)*a2;  float g2 = green(c_img)*a2;  float b2 = blue(c_img)*a2;
+     score += colorDistance(r1, g1, b1, r2, g2, b2);
+  }
+  return score;
 }
-*/
+
+float calculateScore(PGraphics area, PImage original) {
+  float score = 0;
+  area.loadPixels();
+  for(int i=0; i < area.pixels.length; i++){
+     color c_area = area.pixels[i];
+     color c_img = original.pixels[i];
+     float a1 = alpha(c_area)/255;  float r1 = red(c_area)*a1;  float g1 = green(c_area)*a1;  float b1 = blue(c_area)*a1;
+     float a2 = alpha(c_img)/255; float r2 = red(c_img)*a2;  float g2 = green(c_img)*a2;  float b2 = blue(c_img)*a2;
+     score += colorDistance(r1, g1, b1, r2, g2, b2);
+  }
+  return score;
+}
+
 
 float colorDistance(float r1, float b1, float g1, float r2, float g2, float b2) {
   return sqrt(pow(r2-r1, 2) + pow(g2-g1, 2) + pow(b2-b1, 2));
