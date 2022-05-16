@@ -1,7 +1,7 @@
 // Natural selection
-final int shape_count = 100;
-final int gen_count = 5;
-final int survivor_count = 20;
+final int shape_count = 500;
+final int gen_count = 10;
+final int survivor_count = 100;
 final int child_count = shape_count/survivor_count;
 
 // Genetic
@@ -60,6 +60,7 @@ void draw() {
     buffer = (PGraphics[]) shorten(buffer);
     thread_index = (thread_index+1)%thread_count;
     thread("selection");
+    println(count, "-", calculateScore(new_img, img));
   }
   
   
@@ -127,7 +128,6 @@ void selection() {
   
   buffer = (PGraphics[]) append(buffer, new_img);
   count++;
-  println(count, "-", shapes[0].score);
 }
 
 

@@ -39,7 +39,7 @@ class Shape {
     int areaY = int(constrain(y-radius, 0, img.height));
     int size = int(radius * 2);
     
-    float new_score;
+    float final_score;
     
     if(size*size < img.width*img.height) {
       PImage img_area = img.get(areaX, areaY, size, size);
@@ -53,8 +53,8 @@ class Shape {
       new_pg.endDraw();
       
       float last_area_score = calculateScore(last_shape_area, img_area);
-      float _score = calculateScore(shape_area, img_area);
-      new_score = abs(last_area_score - _score);
+      float new_score = calculateScore(shape_area, img_area);
+      final_score = last_area_score - new_score;
       //println(last_area_score, _score, new_score);
     }
     else {
@@ -64,11 +64,12 @@ class Shape {
       new_pg.endDraw();
       
       float last_area_score = calculateScore(new_pg, img);
-      new_score = abs(last_area_score - calculateScore(new_pg, img));
+      float new_score = calculateScore(new_pg, img);
+      final_score = last_area_score - new_score;
     }
     
-    this.score = new_score;
-    return new_score;
+    this.score = final_score;
+    return final_score;
   }
   
   
